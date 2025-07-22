@@ -1,2 +1,2 @@
 # hfind
-Easy search through user command history in Linux
+Easy search commands through user command history in Linux
