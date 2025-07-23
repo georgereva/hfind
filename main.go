@@ -24,16 +24,16 @@ func main() {
 }
 
 func runSearch(searchTerm string) error {
-	homeDir, err := os.UserHomeDir()
+	historyFilePath, err := getHistoryFilePath()
 	if err != nil {
-		return fmt.Errorf("error finding home directory: %w", err)
+		return err
 	}
 
-	historyFilePath := filepath.Join(homeDir, ".zsh_history")
 	file, err := os.Open(historyFilePath)
 	if err != nil {
-		return fmt.Errorf("error opening history file at %s: %w", historyFilePath, err)
+		return fmt.Errorf("could not open history file at %s: %w", historyFilePath, err)
 	}
+
 	defer file.Close()
 
 	red := color.New(color.FgRed, color.Bold).SprintFunc()
@@ -53,4 +53,33 @@ func runSearch(searchTerm string) error {
 	}
 
 	return nil
+}
+
+func getHistoryFilePath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("could not find home directory: %w", err)
+	}
+
+	shellPath := os.Getenv("SHELL")
+	if shellPath == "" {
+		return filepath.Join(homeDir, ".bash_history"), nil
+	}
+
+	shell := filepath.Base(shellPath)
+
+	switch shell {
+	case "zsh":
+		if histFile := os.Getenv("HISTFILE"); histFile != "" {
+			return histFile, nil
+		}
+
+		return filepath.Join(homeDir, ".zsh_history"), nil
+	case "bash":
+		return filepath.Join(homeDir, ".bash_history"), nil
+	case "sh":
+		return filepath.Join(homeDir, ".sh_history"), nil
+	default:
+		return "", fmt.Errorf("unsupported shell: %s. Only bash, sh, zsh are supported", shell)
+	}
 }
