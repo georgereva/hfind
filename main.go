@@ -34,7 +34,11 @@ func runSearch(searchTerm string) error {
 		return fmt.Errorf("could not open history file at %s: %w", historyFilePath, err)
 	}
 
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("could not close history file at %v\n", err)
+		}
+	}()
 
 	red := color.New(color.FgRed, color.Bold).SprintFunc()
 
